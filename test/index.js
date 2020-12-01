@@ -343,18 +343,20 @@ describe('BasisApeFactory', function() {
       assert.equal(balance.toString(), '7700000000', 'balance should be correct')
     })
   })
-  describe.skip('fees', function() {
-    it('should deposit less than the limit, withdraw, then deposit less than limit', async function() {
+  describe.only('fees', function() {
+    it('should collect fee', async function() {
       const [owner, user1, user2] = await ethers.getSigners()
       const [bac, usdc, usdcpool, factory] = await setup()
 
-      await usdc.connect(user1).approve(factory.address, '2000000000')
-      await factory.connect(user1).deposit('1000000000') // 10,000
-      await factory.connect(user1).withdraw(user1.address, '1000000000')
-      await factory.connect(user1).deposit('1000000000')
+      await usdc.connect(user1).approve(factory.address, '50000000000')
+      await factory.connect(user1).deposit('50000000000')
+      await factory.connect(user1).withdraw(user1.address, '30000000000')
+      await factory.connect(user1).withdraw(user1.address, '20000000000')
 
       const balance = await factory.balanceOf(user1.address)
-      assert.equal(balance.toString(), '1000000000', 'balance should be correct')
+      const developerUSDCBalance = await usdc.balanceOf(owner.address)
+      assert.equal(balance.toString(), '0', 'balance should be correct')
+      assert.equal(developerUSDCBalance.toString(), '250000000', 'developer usdc balance should be correct')
     })
   })
 })
