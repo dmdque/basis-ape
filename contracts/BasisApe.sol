@@ -1,29 +1,28 @@
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol"; // TODO: replace with IERC20
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "./basiscash/IPool.sol";
+import "./interfaces/IBasisApeFactory.sol";
 
 contract BasisApe is Ownable {
-  using SafeMath for uint256;
-
   address public factory;
-  address public pool;
-  address public asset;
-  mapping(address => uint256) public balances;
-
-  uint256 constant BATCH_SIZE = 200000e18; // TODO for USDC and USDT
 
   constructor() Ownable() public {
+    factory = msg.sender;
   }
 
-  function deposit(uint256 amount) {
-    asset.approve(pool, amount);
-    pool.stake(amount);
+  function deposit(uint256 amount) external {
+    address pool = IBasisApeFactory(factory).pool();
+    address asset = IBasisApeFactory(factory).asset();
+    IERC20(asset).approve(pool, amount);
+    IPool(pool).stake(amount);
   }
 
-  function withdraw(address recipient, uint256 amount) onlyOwner {
+  function withdraw(address recipient, uint256 amount) onlyOwner external {
+    address pool = IBasisApeFactory(factory).pool();
+    address asset = IBasisApeFactory(factory).asset();
     IPool(pool).withdraw(amount);
-    ERC20(asset).transfer(recipient, amount);
+    IERC20(asset).transfer(recipient, amount);
   }
 
   // exit? initialize with benefactor, allow to call withdraw

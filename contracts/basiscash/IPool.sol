@@ -1,4 +1,4 @@
-interface IWrapper {
+interface IPool {
 
   function stake(uint256 amount) external;
 
