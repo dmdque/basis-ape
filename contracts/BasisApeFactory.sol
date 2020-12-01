@@ -1,9 +1,11 @@
+// WARNING: THIS IS BETA SOFTWARE. USE AT YOUR OWN RISK
+
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "./BasisApe.sol";
 
-// MVP v0.0.1
+// v0.1.0
 /*
  * \       / \       / \       /
  *  \     /   \     /   \     /
@@ -21,6 +23,11 @@ contract BasisApeFactory {
   mapping(address => uint256) public balances;
 
   uint256 constant FEE = 50; // .5% (10000 denominated)
+
+  event Deposit(address account, uint256 amount);
+  event Withdraw(address account, uint256 amount);
+  event UpdateDeveloper(address newDeveloper);
+  event DeveloperFeePaid(address developer, uint256 amount);
 
   constructor(address _pool, address _asset, address _bac, address _developer, uint256 _batchSize) public {
     pool = _pool;
@@ -82,6 +89,7 @@ contract BasisApeFactory {
     }
 
     balances[msg.sender] = balances[msg.sender].add(amount);
+    emit Deposit(msg.sender, amount);
   }
 
   function withdraw(address recipient, uint256 amount) external {
@@ -95,12 +103,12 @@ contract BasisApeFactory {
     if (remainder > 0) {
       address cup = cups[msg.sender][currentCup];
       if (amount <= remainder) {
-        BasisApe(cup).withdraw(amount);
+        BasisApe(cup).withdraw(recipient, amount);
         remainder = remainder.sub(amount);
         balances[msg.sender] = balances[msg.sender].sub(amount);
         return;
       } else {
-        BasisApe(cup).withdraw(remainder);
+        BasisApe(cup).withdraw(recipient, remainder);
         remainingAmount = remainingAmount.sub(remainder);
       }
     }
@@ -109,7 +117,7 @@ contract BasisApeFactory {
     while (remainingAmount >= batchSize) {
       currentCup = currentCup.sub(1);
       address cup = cups[msg.sender][currentCup];
-      BasisApe(cup).withdraw(batchSize);
+      BasisApe(cup).withdraw(recipient, batchSize);
       remainingAmount = remainingAmount.sub(batchSize);
     }
 
@@ -117,18 +125,21 @@ contract BasisApeFactory {
     if (remainingAmount > 0) {
       currentCup = currentCup.sub(1);
       address cup = cups[msg.sender][currentCup];
-      BasisApe(cup).withdraw(remainingAmount);
+      BasisApe(cup).withdraw(recipient, remainingAmount);
     }
 
     balances[msg.sender] = balances[msg.sender].sub(amount, "BasisApeFactory: Must have sufficient balance");
     uint256 fee = amount.mul(FEE).div(10000);
     IERC20(asset).transfer(developer, fee);
     IERC20(asset).transfer(recipient, amount.sub(fee));
+    emit DeveloperFeePaid(developer, fee);
+    emit Withdraw(msg.sender, amount);
   }
 
   function setDeveloper(address _developer) external {
     require(msg.sender == developer, "BasisApeFactory: Must be called by developer");
     developer = _developer;
+    emit UpdateDeveloper(_developer);
   }
 
   function numCups(address account) external view returns (uint256) {
@@ -138,5 +149,4 @@ contract BasisApeFactory {
   function balanceOf(address account) external view returns (uint256) {
     return balances[account];
   }
-
 }
