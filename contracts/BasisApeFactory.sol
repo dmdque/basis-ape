@@ -44,6 +44,7 @@ contract BasisApeFactory is Ownable {
         return;
       } else {
         uint256 amountToFillCup = BATCH_SIZE.sub(remainder);
+        IERC20(asset).transferFrom(msg.sender, cup, amountToFillCup); // Transferring directly to cup saves some gas
         BasisApe(cup).deposit(amountToFillCup);
         remainingAmount = remainingAmount.sub(amountToFillCup);
         currentCup = currentCup.add(1);

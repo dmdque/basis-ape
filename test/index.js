@@ -88,6 +88,20 @@ describe('BasisApeFactory', function() {
       assert.equal(numCups.toString(), '2', 'number of cups should be correct')
     })
 
+    it('should deposit multiple times more than the limit, with a batch bigger than the limit', async function() {
+      const [owner, user1, user2] = await ethers.getSigners()
+      const [bac, usdc, usdcPool, factory] = await setup()
+
+      await usdc.connect(user1).approve(factory.address, '30000000000')
+      await factory.connect(user1).deposit('5000000000') // 5,000
+      await factory.connect(user1).deposit('25000000000')
+
+      const balance = await factory.balanceOf(user1.address)
+      const numCups = await factory.numCups()
+      assert.equal(balance.toString(), '30000000000', 'balance should be correct')
+      assert.equal(numCups.toString(), '2', 'number of cups should be correct')
+    })
+
     it('should deposit the limit multiple times', async function() {
       const [owner, user1, user2] = await ethers.getSigners()
       const [bac, usdc, usdcPool, factory] = await setup()
@@ -101,7 +115,7 @@ describe('BasisApeFactory', function() {
       const balance = await factory.balanceOf(user1.address)
       const numCups = await factory.numCups()
       assert.equal(balance.toString(), '80000000000', 'balance should be correct')
-      assert.equal(numCups.toString(), '2', 'number of cups should be correct')
+      assert.equal(numCups.toString(), '4', 'number of cups should be correct')
     })
 
     it('should deposit a large amount', async function() {
@@ -275,39 +289,45 @@ describe('BasisApeFactory', function() {
       const [owner, user1, user2] = await ethers.getSigners()
       const [bac, usdc, usdcpool, factory] = await setup()
 
-      await usdc.connect(user1).approve(factory.address, '4000000000')
-      await factory.connect(user1).deposit('1000000000') // 10,000
-      await factory.connect(user1).withdraw(user1.address, '1000000000')
-      await factory.connect(user1).deposit('3000000000')
+      await usdc.connect(user1).approve(factory.address, '40000000000')
+      await factory.connect(user1).deposit('10000000000') // 10,000
+      await factory.connect(user1).withdraw(user1.address, '10000000000')
+      await factory.connect(user1).deposit('30000000000')
 
       const balance = await factory.balanceOf(user1.address)
-      assert.equal(balance.toString(), '3000000000', 'balance should be correct')
+      const numCups = await factory.numCups()
+      assert.equal(balance.toString(), '30000000000', 'balance should be correct')
+      assert.equal(numCups.toString(), '2', 'number of cups should be correct')
     })
 
     it('should deposit the limit, withdraw some, then deposit more than the limit', async function() {
       const [owner, user1, user2] = await ethers.getSigners()
       const [bac, usdc, usdcpool, factory] = await setup()
 
-      await usdc.connect(user1).approve(factory.address, '5500000000')
-      await factory.connect(user1).deposit('2000000000') // 20,000
-      await factory.connect(user1).withdraw(user1.address, '300000000')
-      await factory.connect(user1).deposit('3500000000')
+      await usdc.connect(user1).approve(factory.address, '55000000000')
+      await factory.connect(user1).deposit('20000000000') // 20,000
+      await factory.connect(user1).withdraw(user1.address, '3000000000')
+      await factory.connect(user1).deposit('35000000000')
 
       const balance = await factory.balanceOf(user1.address)
-      assert.equal(balance.toString(), '5200000000', 'balance should be correct')
+      const numCups = await factory.numCups()
+      assert.equal(balance.toString(), '52000000000', 'balance should be correct')
+      assert.equal(numCups.toString(), '3', 'number of cups should be correct')
     })
 
     it('should deposit more than the limit, withdraw some, then deposit less than before', async function() {
       const [owner, user1, user2] = await ethers.getSigners()
       const [bac, usdc, usdcpool, factory] = await setup()
 
-      await usdc.connect(user1).approve(factory.address, '10000000000')
-      await factory.connect(user1).deposit('5500000000')
-      await factory.connect(user1).withdraw(user1.address, '2300000000')
-      await factory.connect(user1).deposit('4500000000')
+      await usdc.connect(user1).approve(factory.address, '100000000000')
+      await factory.connect(user1).deposit('55000000000')
+      await factory.connect(user1).withdraw(user1.address, '23000000000')
+      await factory.connect(user1).deposit('45000000000')
 
       const balance = await factory.balanceOf(user1.address)
-      assert.equal(balance.toString(), '7700000000', 'balance should be correct')
+      const numCups = await factory.numCups()
+      assert.equal(balance.toString(), '77000000000', 'balance should be correct')
+      assert.equal(numCups.toString(), '4', 'number of cups should be correct')
     })
 
     it('should deposit more than the limit, withdraw some, then deposit more than before', async function() {
