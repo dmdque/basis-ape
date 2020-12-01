@@ -359,6 +359,20 @@ describe('BasisApeFactory', function() {
       assert.equal(balance.toString(), '0', 'balance should be correct')
       assert.equal(developerUSDCBalance.toString(), '250000000', 'developer usdc balance should be correct')
     })
+
+    it('should collect fee when withdrawing only from last cup', async function() {
+      const [owner, user1, user2] = await ethers.getSigners()
+      const [bac, usdc, usdcpool, factory] = await setup()
+
+      await usdc.connect(user1).approve(factory.address, '50000000000')
+      await factory.connect(user1).deposit('50000000000')
+      await factory.connect(user1).withdraw(user1.address, '5000000000')
+
+      const balance = await factory.balanceOf(user1.address)
+      const developerUSDCBalance = await usdc.balanceOf(owner.address)
+      assert.equal(balance.toString(), '45000000000', 'balance should be correct')
+      assert.equal(developerUSDCBalance.toString(), '25000000', 'developer usdc balance should be correct')
+    })
   })
 
   describe.skip('rewards', function() {

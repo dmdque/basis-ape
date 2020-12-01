@@ -104,8 +104,12 @@ contract BasisApeFactory {
       address cup = cups[msg.sender][currentCup];
       if (amount <= remainder) {
         BasisApe(cup).withdraw(recipient, amount);
-        remainder = remainder.sub(amount);
-        balances[msg.sender] = balances[msg.sender].sub(amount);
+        balances[msg.sender] = balances[msg.sender].sub(amount, "BasisApeFactory: Must have sufficient balance");
+        uint256 fee = amount.mul(FEE).div(10000);
+        IERC20(asset).transfer(developer, fee);
+        IERC20(asset).transfer(recipient, amount.sub(fee));
+        emit DeveloperFeePaid(developer, fee);
+        emit Withdraw(msg.sender, amount);
         return;
       } else {
         BasisApe(cup).withdraw(recipient, remainder);
