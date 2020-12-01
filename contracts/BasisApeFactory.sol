@@ -29,15 +29,15 @@ contract BasisApeFactory is Ownable {
   }
 
   function deposit(uint256 amount) external {
-    uint256 currentCup = _balance.div(BATCH_SIZE);
     uint256 remainder = _balance % BATCH_SIZE;
+    uint256 currentCup = _balance.div(BATCH_SIZE);
 
     // Fill first cup
     uint256 remainingAmount = amount;
     if (remainder > 0) {
       address cup = cups[currentCup];
       if (remainder.add(amount) <= BATCH_SIZE) {
-        IERC20(asset).transferFrom(msg.sender, cup, amount);
+        IERC20(asset).transferFrom(msg.sender, cup, amount); // Transferring directly to cup saves some gas
         BasisApe(cup).deposit(amount);
         remainder = remainder.add(amount) % BATCH_SIZE; // Mod because when remainder is BATCH_SIZE, we want it to be 0
         _balance = _balance.add(amount);
@@ -82,30 +82,42 @@ contract BasisApeFactory is Ownable {
   }
 
   function withdraw(address recipient, uint256 amount) external {
-    //require(amount <= _balance, "BasisApeFactory: Must have sufficient balance")
+    require(amount <= _balance, "BasisApeFactory: Must have sufficient balance");
 
-    //uint256 currentCup = _balance.div(BATCH_SIZE);
+    uint256 remainder = _balance % BATCH_SIZE;
+    uint256 currentCup = _balance.div(BATCH_SIZE);
 
-    //// Empty last cup
-    //uint256 remainingAmount = amount;
-    //if (_remainder > 0) {
-      //address cup = cups[currentCup];
-      //if (amount <= _remainder) {
-        //BasisApe(cup).withdraw(recipient, amount);
-        //_remainder = _remainder.sub(amount);
-        //_balance = _balance.sub(amount);
-        //return;
-      //} else {
-        //uint256 amountToFillCup = BATCH_SIZE.sub(_remainder);
-        //BasisApe(cup).deposit(amountToFillCup);
-        //remainingAmount = remainingAmount.sub(amountToFillCup);
-        //currentCup = currentCup.add(1);
-      //}
-    //}
+    // Empty last cup
+    uint256 remainingAmount = amount;
+    if (remainder > 0) {
+      address cup = cups[currentCup];
+      if (amount <= remainder) {
+        BasisApe(cup).withdraw(recipient, amount);
+        remainder = remainder.sub(amount);
+        _balance = _balance.sub(amount);
+        return;
+      } else {
+        BasisApe(cup).withdraw(recipient, remainder);
+        remainingAmount = remainingAmount.sub(remainder);
+      }
+    }
 
-    //// Fully empty cups
+    // Fully empty cups
+    while (remainingAmount >= BATCH_SIZE) {
+      currentCup = currentCup.sub(1);
+      address cup = cups[currentCup];
+      BasisApe(cup).withdraw(recipient, BATCH_SIZE);
+      remainingAmount = remainingAmount.sub(BATCH_SIZE);
+    }
 
-    //// Empty first cup
+    // Empty first cup
+    if (remainingAmount > 0) {
+      currentCup = currentCup.sub(1);
+      address cup = cups[currentCup];
+      BasisApe(cup).withdraw(recipient, remainingAmount);
+    }
+
+    _balance = _balance.sub(amount, "BasisApeFactory: Must have sufficient balance");
   }
 
   function numCups() external view returns (uint256) {
