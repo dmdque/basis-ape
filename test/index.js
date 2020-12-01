@@ -96,6 +96,38 @@ describe('BasisApeFactory', function() {
     assert.equal(remainder.toString(), '5000000000', 'remainder should be correct')
     assert.equal(numCups.toString(), '2', 'number of cups should be correct')
   })
+
+  it('should deposit a large amount', async function() {
+    const [owner, user1, user2] = await ethers.getSigners()
+    const [bac, usdc, usdcpool, factory] = await setup()
+
+    await usdc.connect(user1).approve(factory.address, '180000000000')
+    await factory.connect(user1).deposit('180000000000') // 1,800,000
+
+    const balance = await factory.balanceOf(user1.address)
+    const remainder = await factory.remainder()
+    const numCups = await factory.numCups()
+    assert.equal(balance.toString(), '180000000000', 'balance should be correct')
+    assert.equal(remainder.toString(), '0', 'remainder should be correct')
+    assert.equal(numCups.toString(), '9', 'number of cups should be correct')
+  })
+
+  it('should deposit a large amount multiple times', async function() {
+    const [owner, user1, user2] = await ethers.getSigners()
+    const [bac, usdc, usdcpool, factory] = await setup()
+
+    await usdc.connect(user1).approve(factory.address, '300000000000')
+    await factory.connect(user1).deposit('100000000000') // 1,000,000
+    await factory.connect(user1).deposit('100000000000')
+    await factory.connect(user1).deposit('100000000000')
+
+    const balance = await factory.balanceOf(user1.address)
+    const remainder = await factory.remainder()
+    const numCups = await factory.numCups()
+    assert.equal(balance.toString(), '300000000000', 'balance should be correct')
+    assert.equal(remainder.toString(), '0', 'remainder should be correct')
+    assert.equal(numCups.toString(), '15', 'number of cups should be correct')
+  })
 })
 
 async function setup() {
@@ -117,7 +149,7 @@ async function setup() {
   const factory = await Factory.deploy(usdcPool.address, usdc.address)
   await factory.deployed()
 
-  await usdc.connect(owner).mint(user1.address, '100000000000') // 100,000
+  await usdc.connect(owner).mint(user1.address, '100000000000000') // 100,000,000
 
   return [bac, usdc, usdcPool, factory]
 }
