@@ -6,4 +6,6 @@ interface IPool {
 
   function exit() external;
 
+  function getReward() external;
+
 }

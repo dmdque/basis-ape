@@ -17,36 +17,36 @@ contract BasisApeFactory is Ownable {
   address public asset;
   address public bac;
   address public developer;
+  uint256 public batchSize;
   mapping(address => address[]) public cups;
-
   mapping(address => uint256) public balances;
 
   uint256 constant FEE = 50; // .5% (10000 denominated)
-  uint256 constant BATCH_SIZE = 20000e6; // TODO for USDC and USDT
 
-  constructor(address _pool, address _asset, address _bac, address _developer) public {
+  constructor(address _pool, address _asset, address _bac, address _developer, uint256 _batchSize) public {
     pool = _pool;
     asset = _asset;
     bac = _bac;
     developer = _developer;
+    batchSize = _batchSize;
   }
 
   function deposit(uint256 amount) external {
-    uint256 remainder = balances[msg.sender] % BATCH_SIZE;
-    uint256 currentCup = balances[msg.sender].div(BATCH_SIZE);
+    uint256 remainder = balances[msg.sender] % batchSize;
+    uint256 currentCup = balances[msg.sender].div(batchSize);
     uint256 remainingAmount = amount;
 
     // Fill first cup
     if (remainder > 0) {
       address cup = cups[msg.sender][currentCup];
-      if (remainder.add(amount) <= BATCH_SIZE) {
+      if (remainder.add(amount) <= batchSize) {
         IERC20(asset).transferFrom(msg.sender, cup, amount); // Transferring directly to cup saves some gas
         BasisApe(cup).deposit(amount);
-        remainder = remainder.add(amount) % BATCH_SIZE; // Mod because when remainder is BATCH_SIZE, we want it to be 0
+        remainder = remainder.add(amount) % batchSize; // Mod because when remainder is batchSize, we want it to be 0
         balances[msg.sender] = balances[msg.sender].add(amount);
         return;
       } else {
-        uint256 amountToFillCup = BATCH_SIZE.sub(remainder);
+        uint256 amountToFillCup = batchSize.sub(remainder);
         IERC20(asset).transferFrom(msg.sender, cup, amountToFillCup); // Transferring directly to cup saves some gas
         BasisApe(cup).deposit(amountToFillCup);
         remainingAmount = remainingAmount.sub(amountToFillCup);
@@ -55,7 +55,7 @@ contract BasisApeFactory is Ownable {
     }
 
     // Fully fill cups
-    while (remainingAmount >= BATCH_SIZE) {
+    while (remainingAmount >= batchSize) {
       address cup;
       if (cups[msg.sender].length <= currentCup) {
         cup = address(new BasisApe());
@@ -63,9 +63,9 @@ contract BasisApeFactory is Ownable {
       } else {
         cup = cups[msg.sender][currentCup];
       }
-      IERC20(asset).transferFrom(msg.sender, cup, BATCH_SIZE);
-      BasisApe(cup).deposit(BATCH_SIZE);
-      remainingAmount = remainingAmount.sub(BATCH_SIZE);
+      IERC20(asset).transferFrom(msg.sender, cup, batchSize);
+      BasisApe(cup).deposit(batchSize);
+      remainingAmount = remainingAmount.sub(batchSize);
       currentCup = currentCup.add(1);
     }
 
@@ -88,8 +88,8 @@ contract BasisApeFactory is Ownable {
   function withdraw(address recipient, uint256 amount) external {
     require(amount <= balances[msg.sender], "BasisApeFactory: Must have sufficient balance");
 
-    uint256 remainder = balances[msg.sender] % BATCH_SIZE;
-    uint256 currentCup = balances[msg.sender].div(BATCH_SIZE);
+    uint256 remainder = balances[msg.sender] % batchSize;
+    uint256 currentCup = balances[msg.sender].div(batchSize);
     uint256 remainingAmount = amount;
 
     // Empty last cup
@@ -107,11 +107,11 @@ contract BasisApeFactory is Ownable {
     }
 
     // Fully empty cups
-    while (remainingAmount >= BATCH_SIZE) {
+    while (remainingAmount >= batchSize) {
       currentCup = currentCup.sub(1);
       address cup = cups[msg.sender][currentCup];
-      BasisApe(cup).withdraw(BATCH_SIZE);
-      remainingAmount = remainingAmount.sub(BATCH_SIZE);
+      BasisApe(cup).withdraw(batchSize);
+      remainingAmount = remainingAmount.sub(batchSize);
     }
 
     // Empty first cup

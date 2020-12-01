@@ -343,7 +343,7 @@ describe('BasisApeFactory', function() {
       assert.equal(balance.toString(), '7700000000', 'balance should be correct')
     })
   })
-  describe.only('fees', function() {
+  describe('fees', function() {
     it('should collect fee', async function() {
       const [owner, user1, user2] = await ethers.getSigners()
       const [bac, usdc, usdcpool, factory] = await setup()
@@ -377,7 +377,7 @@ async function setup() {
   const usdcPool = await BACUSDCPool.deploy(bac.address, usdc.address, now)
   await usdcPool.deployed()
 
-  const factory = await Factory.deploy(usdcPool.address, usdc.address, bac.address, owner.address)
+  const factory = await Factory.deploy(usdcPool.address, usdc.address, bac.address, owner.address, '20000000000')
   await factory.deployed()
 
   await usdc.connect(owner).mint(user1.address, '100000000000000') // 100,000,000
