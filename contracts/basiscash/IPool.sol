@@ -4,4 +4,6 @@ interface IPool {
 
   function withdraw(uint256 amount) external;
 
+  function exit() external;
+
 }

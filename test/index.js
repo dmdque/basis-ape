@@ -122,13 +122,13 @@ describe('BasisApeFactory', function() {
       const [owner, user1, user2] = await ethers.getSigners()
       const [bac, usdc, usdcpool, factory] = await setup()
 
-      await usdc.connect(user1).approve(factory.address, '180000000000')
-      await factory.connect(user1).deposit('180000000000') // 1,800,000
+      await usdc.connect(user1).approve(factory.address, '120000000000')
+      await factory.connect(user1).deposit('120000000000') // 1,200,000
 
       const balance = await factory.balanceOf(user1.address)
       const numCups = await factory.numCups(user1.address)
-      assert.equal(balance.toString(), '180000000000', 'balance should be correct')
-      assert.equal(numCups.toString(), '9', 'number of cups should be correct')
+      assert.equal(balance.toString(), '120000000000', 'balance should be correct')
+      assert.equal(numCups.toString(), '6', 'number of cups should be correct')
     })
 
     it('should deposit a large amount multiple times', async function() {
@@ -343,6 +343,20 @@ describe('BasisApeFactory', function() {
       assert.equal(balance.toString(), '7700000000', 'balance should be correct')
     })
   })
+  describe.skip('fees', function() {
+    it('should deposit less than the limit, withdraw, then deposit less than limit', async function() {
+      const [owner, user1, user2] = await ethers.getSigners()
+      const [bac, usdc, usdcpool, factory] = await setup()
+
+      await usdc.connect(user1).approve(factory.address, '2000000000')
+      await factory.connect(user1).deposit('1000000000') // 10,000
+      await factory.connect(user1).withdraw(user1.address, '1000000000')
+      await factory.connect(user1).deposit('1000000000')
+
+      const balance = await factory.balanceOf(user1.address)
+      assert.equal(balance.toString(), '1000000000', 'balance should be correct')
+    })
+  })
 })
 
 async function setup() {
@@ -361,7 +375,7 @@ async function setup() {
   const usdcPool = await BACUSDCPool.deploy(bac.address, usdc.address, now)
   await usdcPool.deployed()
 
-  const factory = await Factory.deploy(usdcPool.address, usdc.address)
+  const factory = await Factory.deploy(usdcPool.address, usdc.address, bac.address, owner.address)
   await factory.deployed()
 
   await usdc.connect(owner).mint(user1.address, '100000000000000') // 100,000,000

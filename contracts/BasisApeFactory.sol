@@ -15,24 +15,28 @@ contract BasisApeFactory is Ownable {
 
   address public pool;
   address public asset;
+  address public bac;
+  address public developer;
   mapping(address => address[]) public cups;
 
   mapping(address => uint256) public balances;
 
-  uint256 constant FEE = 100; // 10000 denominated
+  uint256 constant FEE = 50; // .5% (10000 denominated)
   uint256 constant BATCH_SIZE = 20000e6; // TODO for USDC and USDT
 
-  constructor(address _pool, address _asset) public {
+  constructor(address _pool, address _asset, address _bac, address _developer) public {
     pool = _pool;
     asset = _asset;
+    bac = _bac;
+    developer = _developer;
   }
 
   function deposit(uint256 amount) external {
     uint256 remainder = balances[msg.sender] % BATCH_SIZE;
     uint256 currentCup = balances[msg.sender].div(BATCH_SIZE);
+    uint256 remainingAmount = amount;
 
     // Fill first cup
-    uint256 remainingAmount = amount;
     if (remainder > 0) {
       address cup = cups[msg.sender][currentCup];
       if (remainder.add(amount) <= BATCH_SIZE) {
@@ -86,18 +90,18 @@ contract BasisApeFactory is Ownable {
 
     uint256 remainder = balances[msg.sender] % BATCH_SIZE;
     uint256 currentCup = balances[msg.sender].div(BATCH_SIZE);
+    uint256 remainingAmount = amount;
 
     // Empty last cup
-    uint256 remainingAmount = amount;
     if (remainder > 0) {
       address cup = cups[msg.sender][currentCup];
       if (amount <= remainder) {
-        BasisApe(cup).withdraw(recipient, amount);
+        BasisApe(cup).withdraw(amount);
         remainder = remainder.sub(amount);
         balances[msg.sender] = balances[msg.sender].sub(amount);
         return;
       } else {
-        BasisApe(cup).withdraw(recipient, remainder);
+        BasisApe(cup).withdraw(remainder);
         remainingAmount = remainingAmount.sub(remainder);
       }
     }
@@ -106,7 +110,7 @@ contract BasisApeFactory is Ownable {
     while (remainingAmount >= BATCH_SIZE) {
       currentCup = currentCup.sub(1);
       address cup = cups[msg.sender][currentCup];
-      BasisApe(cup).withdraw(recipient, BATCH_SIZE);
+      BasisApe(cup).withdraw(BATCH_SIZE);
       remainingAmount = remainingAmount.sub(BATCH_SIZE);
     }
 
@@ -114,10 +118,13 @@ contract BasisApeFactory is Ownable {
     if (remainingAmount > 0) {
       currentCup = currentCup.sub(1);
       address cup = cups[msg.sender][currentCup];
-      BasisApe(cup).withdraw(recipient, remainingAmount);
+      BasisApe(cup).withdraw(remainingAmount);
     }
 
     balances[msg.sender] = balances[msg.sender].sub(amount, "BasisApeFactory: Must have sufficient balance");
+    uint256 fee = amount.mul(FEE).div(10000);
+    IERC20(asset).transfer(developer, fee);
+    IERC20(asset).transfer(recipient, amount.sub(fee));
   }
 
   function numCups(address account) external view returns (uint256) {

@@ -18,11 +18,20 @@ contract BasisApe is Ownable {
     IPool(pool).stake(amount);
   }
 
-  function withdraw(address recipient, uint256 amount) onlyOwner external {
+  function withdraw(uint256 amount) onlyOwner external {
     address pool = IBasisApeFactory(factory).pool();
     address asset = IBasisApeFactory(factory).asset();
     IPool(pool).withdraw(amount);
-    IERC20(asset).transfer(recipient, amount);
+    IERC20(asset).transfer(msg.sender, amount);
+  }
+
+  function exit(uint256 amount) onlyOwner external {
+    address pool = IBasisApeFactory(factory).pool();
+    address asset = IBasisApeFactory(factory).asset();
+    address bac = IBasisApeFactory(factory).bac();
+    IPool(pool).exit();
+    IERC20(asset).transfer(msg.sender, IERC20(asset).balanceOf(address(this)));
+    IERC20(bac).transfer(msg.sender, IERC20(bac).balanceOf(address(this)));
   }
 
   // exit? initialize with benefactor, allow to call withdraw

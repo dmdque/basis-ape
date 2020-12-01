@@ -4,4 +4,6 @@ interface IBasisApeFactory {
 
   function asset() external returns (address);
 
+  function bac() external returns (address);
+
 }
