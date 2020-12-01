@@ -12,7 +12,7 @@ describe('BasisApeFactory', function() {
       await factory.connect(user1).deposit('10000000000') // 10,000
 
       const balance = await factory.balanceOf(user1.address)
-      const numCups = await factory.numCups()
+      const numCups = await factory.numCups(user1.address)
       assert.equal(balance.toString(), '10000000000', 'balance should be correct')
       assert.equal(numCups.toString(), '1', 'number of cups should be correct')
     })
@@ -25,7 +25,7 @@ describe('BasisApeFactory', function() {
       await factory.connect(user1).deposit('20000000000') // 20,000
 
       const balance = await factory.balanceOf(user1.address)
-      const numCups = await factory.numCups()
+      const numCups = await factory.numCups(user1.address)
       assert.equal(balance.toString(), '20000000000', 'balance should be correct')
       assert.equal(numCups.toString(), '1', 'number of cups should be correct')
     })
@@ -38,7 +38,7 @@ describe('BasisApeFactory', function() {
       await factory.connect(user1).deposit('100000000000') // 100,000
 
       const balance = await factory.balanceOf(user1.address)
-      const numCups = await factory.numCups()
+      const numCups = await factory.numCups(user1.address)
       assert.equal(balance.toString(), '100000000000', 'balance should be correct')
       assert.equal(numCups.toString(), '5', 'number of cups should be correct')
     })
@@ -51,7 +51,7 @@ describe('BasisApeFactory', function() {
       await factory.connect(user1).deposit('80000000001') // 80,000.000001
 
       const balance = await factory.balanceOf(user1.address)
-      const numCups = await factory.numCups()
+      const numCups = await factory.numCups(user1.address)
       assert.equal(balance.toString(), '80000000001', 'balance should be correct')
       assert.equal(numCups.toString(), '5', 'number of cups should be correct')
     })
@@ -66,7 +66,7 @@ describe('BasisApeFactory', function() {
       await factory.connect(user1).deposit('5000000000')
 
       const balance = await factory.balanceOf(user1.address)
-      const numCups = await factory.numCups()
+      const numCups = await factory.numCups(user1.address)
       assert.equal(balance.toString(), '15000000000', 'balance should be correct')
       assert.equal(numCups.toString(), '1', 'number of cups should be correct')
     })
@@ -83,7 +83,7 @@ describe('BasisApeFactory', function() {
       await factory.connect(user1).deposit('5000000000')
 
       const balance = await factory.balanceOf(user1.address)
-      const numCups = await factory.numCups()
+      const numCups = await factory.numCups(user1.address)
       assert.equal(balance.toString(), '25000000000', 'balance should be correct')
       assert.equal(numCups.toString(), '2', 'number of cups should be correct')
     })
@@ -97,7 +97,7 @@ describe('BasisApeFactory', function() {
       await factory.connect(user1).deposit('25000000000')
 
       const balance = await factory.balanceOf(user1.address)
-      const numCups = await factory.numCups()
+      const numCups = await factory.numCups(user1.address)
       assert.equal(balance.toString(), '30000000000', 'balance should be correct')
       assert.equal(numCups.toString(), '2', 'number of cups should be correct')
     })
@@ -113,7 +113,7 @@ describe('BasisApeFactory', function() {
       await factory.connect(user1).deposit('20000000000')
 
       const balance = await factory.balanceOf(user1.address)
-      const numCups = await factory.numCups()
+      const numCups = await factory.numCups(user1.address)
       assert.equal(balance.toString(), '80000000000', 'balance should be correct')
       assert.equal(numCups.toString(), '4', 'number of cups should be correct')
     })
@@ -126,7 +126,7 @@ describe('BasisApeFactory', function() {
       await factory.connect(user1).deposit('180000000000') // 1,800,000
 
       const balance = await factory.balanceOf(user1.address)
-      const numCups = await factory.numCups()
+      const numCups = await factory.numCups(user1.address)
       assert.equal(balance.toString(), '180000000000', 'balance should be correct')
       assert.equal(numCups.toString(), '9', 'number of cups should be correct')
     })
@@ -141,7 +141,7 @@ describe('BasisApeFactory', function() {
       await factory.connect(user1).deposit('100000000000')
 
       const balance = await factory.balanceOf(user1.address)
-      const numCups = await factory.numCups()
+      const numCups = await factory.numCups(user1.address)
       assert.equal(balance.toString(), '300000000000', 'balance should be correct')
       assert.equal(numCups.toString(), '15', 'number of cups should be correct')
     })
@@ -295,7 +295,7 @@ describe('BasisApeFactory', function() {
       await factory.connect(user1).deposit('30000000000')
 
       const balance = await factory.balanceOf(user1.address)
-      const numCups = await factory.numCups()
+      const numCups = await factory.numCups(user1.address)
       assert.equal(balance.toString(), '30000000000', 'balance should be correct')
       assert.equal(numCups.toString(), '2', 'number of cups should be correct')
     })
@@ -310,7 +310,7 @@ describe('BasisApeFactory', function() {
       await factory.connect(user1).deposit('35000000000')
 
       const balance = await factory.balanceOf(user1.address)
-      const numCups = await factory.numCups()
+      const numCups = await factory.numCups(user1.address)
       assert.equal(balance.toString(), '52000000000', 'balance should be correct')
       assert.equal(numCups.toString(), '3', 'number of cups should be correct')
     })
@@ -325,7 +325,7 @@ describe('BasisApeFactory', function() {
       await factory.connect(user1).deposit('45000000000')
 
       const balance = await factory.balanceOf(user1.address)
-      const numCups = await factory.numCups()
+      const numCups = await factory.numCups(user1.address)
       assert.equal(balance.toString(), '77000000000', 'balance should be correct')
       assert.equal(numCups.toString(), '4', 'number of cups should be correct')
     })
