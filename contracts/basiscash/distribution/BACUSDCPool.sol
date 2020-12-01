@@ -101,6 +101,7 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;
     uint256 public rewardPerTokenStored;
+    uint256 private _timestamp; // For testing purposes
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
     mapping(address => uint256) public deposits;
@@ -118,10 +119,11 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
         basisCash = IERC20(basisCash_);
         usdc = IERC20(usdc_);
         starttime = starttime_;
+        _timestamp = now;
     }
 
     modifier checkStart() {
-        require(block.timestamp >= starttime, 'BACUSDCPool: not start');
+        require(blockTimestamp() >= starttime, 'BACUSDCPool: not start');
         _;
     }
 
@@ -136,7 +138,7 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
     }
 
     function lastTimeRewardApplicable() public view returns (uint256) {
-        return Math.min(block.timestamp, periodFinish);
+        return Math.min(blockTimestamp(), periodFinish);
     }
 
     function rewardPerToken() public view returns (uint256) {
@@ -211,16 +213,16 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
         onlyRewardDistribution
         updateReward(address(0))
     {
-        if (block.timestamp > starttime) {
-            if (block.timestamp >= periodFinish) {
+        if (blockTimestamp() > starttime) {
+            if (blockTimestamp() >= periodFinish) {
                 rewardRate = reward.div(DURATION);
             } else {
-                uint256 remaining = periodFinish.sub(block.timestamp);
+                uint256 remaining = periodFinish.sub(blockTimestamp());
                 uint256 leftover = remaining.mul(rewardRate);
                 rewardRate = reward.add(leftover).div(DURATION);
             }
-            lastUpdateTime = block.timestamp;
-            periodFinish = block.timestamp.add(DURATION);
+            lastUpdateTime = blockTimestamp();
+            periodFinish = blockTimestamp().add(DURATION);
             emit RewardAdded(reward);
         } else {
             rewardRate = reward.div(DURATION);
@@ -228,5 +230,13 @@ contract BACUSDCPool is USDCWrapper, IRewardDistributionRecipient {
             periodFinish = starttime.add(DURATION);
             emit RewardAdded(reward);
         }
+    }
+
+    function setTimestamp(uint256 timestamp) external returns (uint256) {
+      return _timestamp = timestamp;
+    }
+
+    function blockTimestamp() public view returns (uint256) {
+      return _timestamp;
     }
 }

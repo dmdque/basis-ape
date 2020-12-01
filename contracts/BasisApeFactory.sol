@@ -1,4 +1,3 @@
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -10,7 +9,7 @@ import "./BasisApe.sol";
  *  \     /   \     /   \     /
  *   \___/     \___/     \___/
  */
-contract BasisApeFactory is Ownable {
+contract BasisApeFactory {
   using SafeMath for uint256;
 
   address public pool;
@@ -58,7 +57,7 @@ contract BasisApeFactory is Ownable {
     while (remainingAmount >= batchSize) {
       address cup;
       if (cups[msg.sender].length <= currentCup) {
-        cup = address(new BasisApe());
+        cup = address(new BasisApe(msg.sender));
         cups[msg.sender].push(cup);
       } else {
         cup = cups[msg.sender][currentCup];
@@ -73,7 +72,7 @@ contract BasisApeFactory is Ownable {
     if (remainingAmount > 0) {
       address cup;
       if (cups[msg.sender].length <= currentCup) {
-        cup = address(new BasisApe());
+        cup = address(new BasisApe(msg.sender));
         cups[msg.sender].push(cup);
       } else {
         cup = cups[msg.sender][currentCup];
@@ -125,6 +124,11 @@ contract BasisApeFactory is Ownable {
     uint256 fee = amount.mul(FEE).div(10000);
     IERC20(asset).transfer(developer, fee);
     IERC20(asset).transfer(recipient, amount.sub(fee));
+  }
+
+  function setDeveloper(address _developer) external {
+    require(msg.sender == developer, "BasisApeFactory: Must be called by developer");
+    developer = _developer;
   }
 
   function numCups(address account) external view returns (uint256) {
